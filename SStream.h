@@ -23,6 +23,82 @@ typedef struct SStream {
 
 void SStream_Init(SStream *ss);
 
+#if defined(CAPSTONE_DIET) && !defined(SSTREAM_IMPLEMENTATION)
+
+static inline void SStream_concat(SStream *ss, const char *fmt, ...)
+{
+	(void)ss;
+	(void)fmt;
+}
+
+static inline void SStream_concat0(SStream *ss, const char *s)
+{
+	(void)ss;
+	(void)s;
+}
+
+static inline void SStream_concat1(SStream *ss, const char c)
+{
+	(void)ss;
+	(void)c;
+}
+
+static inline void printInt64Bang(SStream *O, int64_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+static inline void printUInt64Bang(SStream *O, uint64_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+static inline void printInt64(SStream *O, int64_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+static inline void printUInt64(SStream *O, uint64_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+static inline void printInt32Bang(SStream *O, int32_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+static inline void printInt32(SStream *O, int32_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+static inline void printUInt32Bang(SStream *O, uint32_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+static inline void printUInt32(SStream *O, uint32_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+static inline void printInt32BangDec(SStream *O, int32_t val)
+{
+	(void)O;
+	(void)val;
+}
+
+#else
+
 void SStream_concat(SStream *ss, const char *fmt, ...);
 
 void SStream_concat0(SStream *ss, const char *s);
@@ -46,5 +122,7 @@ void printUInt32(SStream *O, uint32_t val);
 
 // print number in decimal mode
 void printInt32BangDec(SStream *O, int32_t val);
+
+#endif
 
 #endif

@@ -14,6 +14,7 @@
 
 #include <capstone/platform.h>
 
+#define SSTREAM_IMPLEMENTATION
 #include "SStream.h"
 #include "cs_priv.h"
 #include "utils.h"
@@ -28,31 +29,28 @@ void SStream_Init(SStream *ss)
 	ss->buffer[0] = '\0';
 }
 
+#ifndef CAPSTONE_DIET
+
 void SStream_concat0(SStream *ss, const char *s)
 {
-#ifndef CAPSTONE_DIET
 	unsigned int len = (unsigned int) strlen(s);
 
 	SSTREAM_OVERFLOW_CHECK(ss, len);
 	memcpy(ss->buffer + ss->index, s, len);
 	ss->index += len;
 	ss->buffer[ss->index] = '\0';
-#endif
 }
 
 void SStream_concat1(SStream *ss, const char c)
 {
-#ifndef CAPSTONE_DIET
 	SSTREAM_OVERFLOW_CHECK(ss, 1);
 	ss->buffer[ss->index] = c;
 	ss->index++;
 	ss->buffer[ss->index] = '\0';
-#endif
 }
 
 void SStream_concat(SStream *ss, const char *fmt, ...)
 {
-#ifndef CAPSTONE_DIET
 	va_list ap;
 	int ret;
 
@@ -64,7 +62,6 @@ void SStream_concat(SStream *ss, const char *fmt, ...)
 	}
 	SSTREAM_OVERFLOW_CHECK(ss, ret);
 	ss->index += ret;
-#endif
 }
 
 // Fast integer to hex string conversion, avoiding vsnprintf overhead.
@@ -124,32 +121,22 @@ static int fast_utoa_dec(char *buf, uint64_t val)
 // that were the #4 bottleneck due to vsnprintf overhead.
 static void SStream_concat_num(SStream *ss, const char *prefix, uint64_t val, bool use_hex)
 {
-#ifndef CAPSTONE_DIET
-	char *dst = ss->buffer + ss->index;
-	char *end = ss->buffer + SSTREAM_BUF_LEN - 1;
-	const char *p = prefix;
+	char num[21];
+	unsigned int prefix_len = (unsigned int)strlen(prefix);
 	int num_len;
 
-	// copy prefix
-	while (*p && dst < end) {
-		*dst++ = *p++;
-	}
-
-	if (dst >= end) {
-		*dst = '\0';
-		ss->index = (int)(dst - ss->buffer);
-		return;
-	}
-
 	if (use_hex) {
-		num_len = fast_utoa_hex(dst, val);
+		num_len = fast_utoa_hex(num, val);
 	} else {
-		num_len = fast_utoa_dec(dst, val);
+		num_len = fast_utoa_dec(num, val);
 	}
 
-	dst += num_len;
-	ss->index = (int)(dst - ss->buffer);
-#endif
+	SSTREAM_OVERFLOW_CHECK(ss, prefix_len + num_len);
+	memcpy(ss->buffer + ss->index, prefix, prefix_len);
+	ss->index += prefix_len;
+	memcpy(ss->buffer + ss->index, num, num_len);
+	ss->index += num_len;
+	ss->buffer[ss->index] = '\0';
 }
 
 // print number with prefix #
@@ -270,3 +257,5 @@ void printUInt32(SStream *O, uint32_t val)
 	else
 		SStream_concat_num(O, "", (uint64_t)val, false);
 }
+
+#endif
